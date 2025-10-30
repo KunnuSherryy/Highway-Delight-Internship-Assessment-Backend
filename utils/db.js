@@ -5,10 +5,11 @@ export async function connectToDatabase() {
   if (!mongoUri) {
     throw new Error('MONGO_URI not set');
   }
+  if (mongoose.connection.readyState === 1) {
+    return; // already connected
+  }
   mongoose.set('strictQuery', true);
-  await mongoose.connect(mongoUri, {
-    serverSelectionTimeoutMS: 10000
-  });
+  await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 });
   console.log('Connected to MongoDB');
 }
 
