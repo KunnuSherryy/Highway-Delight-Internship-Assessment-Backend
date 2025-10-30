@@ -16,7 +16,12 @@ const server = http.createServer(app);
 
 // middleware
 app.use(express.json({ limit: '4mb' }));
-app.use(cors());
+const corsOptions = {
+  origin: "*",
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+};
+app.use(cors(corsOptions));
 app.use(morgan('dev'));
 
 // routes
