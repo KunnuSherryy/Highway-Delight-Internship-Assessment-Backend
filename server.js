@@ -1,22 +1,40 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import http from 'http';
+import morgan from 'morgan';
 
-import { createApp } from './createApp.js';
 import { connectToDatabase } from './utils/db.js';
-const port = process.env.PORT || 5000;
+import experiencesRouter from './routes/experiences.js';
+import bookingsRouter from './routes/bookings.js';
+import promoRouter from './routes/promo.js';
+import { notFoundHandler, errorHandler } from './middleware/errorHandlers.js';
 
-const app = createApp();
+// create Express app and HTTP server
+const app = express();
+const server = http.createServer(app);
 
-async function start() {
-  await connectToDatabase();
-  app.listen(port, () => {
-    console.log(`API server listening on port ${port}`);
-  });
+// middleware
+app.use(express.json({ limit: '4mb' }));
+app.use(cors());
+app.use(morgan('dev'));
+
+// routes
+app.get('/', (req, res) => res.send('Server is live'));
+app.use('/experiences', experiencesRouter);
+app.use('/bookings', bookingsRouter);
+app.use('/promo', promoRouter);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+// connect DB and optionally listen (in dev/local)
+await connectToDatabase();
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  server.listen(PORT, () => console.log('Server is running on port:' + PORT));
 }
 
-start().catch((err) => {
-  console.error('Failed to start server', err);
-  process.exit(1);
-});
+export default server;
 
 
